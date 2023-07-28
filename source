@@ -1,0 +1,38 @@
+import telebot
+from telebot import types
+from time import sleep
+
+bot = telebot.TeleBot('YOUR DOMEN')
+
+@bot.message_handler(commands=['start'])
+
+def start(message):
+    messg = f'Здравствуйте, <b>{message.from_user.first_name}</b>'
+    messg_2 = 'Пожалуйста введите <u>сумму кредита...</u>'
+
+    bot.send_message(message.chat.id, messg, parse_mode='html')
+    sleep(0.5)
+    bot.send_message(message.chat.id, messg_2, parse_mode='html')
+
+@bot.message_handler()
+def credit(message):
+    global procent_15
+    procent_15 = int(message.text) / 100 * 15
+    reply1 = 'Пожалуйста введите <b>сумму первоначального взноса</b>...'
+    msg1 = bot.send_message(message.chat.id, reply1, parse_mode='html')
+    credit1 = message.text
+    bot.register_next_step_handler(msg1, credit_2)
+
+
+def credit_2(message):
+    global threshold
+    if int(message.text) < procent_15:
+        reply2 = 'Пожалуйста введите <b>сумму первоначального взноса</b> которая будет <u>не меньше 15%</u> от <b>суммы кредита</b>'
+        msg2 = bot.send_message(message.chat.id, reply2, parse_mode='html')
+        credit2 = message.text
+        bot.register_next_step_handler(msg2, credit_2)
+    else:
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton('Подать онлайн заявку на ипотеку', url='https://domclick.ru/ipoteka/programs/onlajn-zayavka'))
+        bot.send_message(message.chat.id, 'Здесь вы можете подать онлайн-заявку на ипотеку', reply_markup=markup)
+bot.polling(none_stop=True)
